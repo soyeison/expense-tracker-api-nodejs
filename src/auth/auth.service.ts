@@ -1,6 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from 'src/user/user.service';
+import { SignUpDto } from './dto/sign-up.dto';
 
 export type PayloadToken = {
   sub: number;
@@ -24,5 +25,14 @@ export class AuthService {
     return {
       access_token: await this.jwtService.signAsync(payload),
     };
+  }
+
+  async signUp(payload: SignUpDto) {
+    // Revisar que el usuario no exista en la DB
+    // Encriptar password
+    // Guardar usuario en la DB
+    await this.userService.create({ ...payload });
+    // Retornar el usuario guardado
+    return;
   }
 }

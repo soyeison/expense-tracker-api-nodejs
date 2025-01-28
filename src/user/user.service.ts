@@ -12,8 +12,14 @@ export class UserService {
     private userRepository: Repository<User>,
   ) {}
 
-  create(createUserDto: CreateUserDto) {
-    return 'This action adds a new user';
+  async create(createUserDto: CreateUserDto) {
+    return await this.userRepository.save({
+      firstName: createUserDto.firstName,
+      lastName: createUserDto.lastName,
+      username: createUserDto.username,
+      password: createUserDto.password,
+      isActive: true,
+    });
   }
 
   async findAll(): Promise<User[]> {
