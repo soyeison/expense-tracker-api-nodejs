@@ -10,6 +10,7 @@ import {
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UserId } from 'src/decorator/user-id.decorator';
 
 @Controller('user')
 export class UserController {
@@ -21,7 +22,8 @@ export class UserController {
   }
 
   @Get()
-  findAll() {
+  findAll(@UserId() userId: number) {
+    console.log('UserId: ', userId);
     return this.userService.findAll();
   }
 
