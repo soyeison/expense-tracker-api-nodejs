@@ -17,7 +17,7 @@ export class AuthController {
 
   @Public()
   @HttpCode(201)
-  @Post('register')
+  @Post('sign-up')
   signUp(@Body() signUpDto: SignUpDto) {
     return this.authService.signUp(signUpDto);
   }
