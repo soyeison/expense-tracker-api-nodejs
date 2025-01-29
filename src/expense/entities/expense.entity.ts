@@ -1,35 +1,30 @@
-import { Expense } from 'src/expense/entities/expense.entity';
 import {
-  Entity,
   Column,
-  PrimaryGeneratedColumn,
-  OneToMany,
   CreateDateColumn,
+  Entity,
+  ManyToOne,
+  PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { User } from 'src/user/entities/user.entity';
+import { Category } from 'src/category/entities/category.entity';
 
 @Entity()
-export class User {
+export class Expense {
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column()
-  firstName: string;
+  description: string;
 
   @Column()
-  lastName: string;
+  amount: number;
 
-  @Column()
-  username: string;
+  @ManyToOne(() => Category, (category) => category.expenses)
+  category: Category;
 
-  @Column()
-  password: string;
-
-  @Column({ default: true })
-  isActive: boolean;
-
-  @OneToMany(() => Expense, (expense) => expense.user)
-  expenses: Expense;
+  @ManyToOne(() => User, (user) => user.expenses)
+  user: User;
 
   @CreateDateColumn({
     type: 'timestamp',
