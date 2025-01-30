@@ -2,25 +2,20 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateExpenseDto } from './dto/create-expense.dto';
 import { UpdateExpenseDto } from './dto/update-expense.dto';
 import { Expense } from './entities/expense.entity';
-import { Repository } from 'typeorm';
+import { Between, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UserService } from 'src/user/user.service';
 import { CategoryService } from 'src/category/category.service';
+import { Filteroptions } from './dto/filter.dto';
 
 @Injectable()
 export class ExpenseService {
   constructor(
     @InjectRepository(Expense)
     private expenseRepository: Repository<Expense>,
-    private readonly userService: UserService,
     private readonly categoryService: CategoryService,
   ) {}
 
   async create(userId: number, createExpenseDto: CreateExpenseDto) {
-    const user = await this.userService.findById(userId);
-    if (!user) {
-      throw new BadRequestException('el usuario no existe');
-    }
     const category = await this.categoryService.findById(
       createExpenseDto.categoryId,
     );
@@ -31,25 +26,77 @@ export class ExpenseService {
 
     return await this.expenseRepository.save({
       description: createExpenseDto.description,
-      category: category,
-      user: user,
       amount: createExpenseDto.amount,
+      categoryId: createExpenseDto.categoryId,
+      userId: userId,
     });
   }
 
-  findAll() {
-    return `This action returns all expense`;
+  async findAll(
+    filter?: Filteroptions,
+    from?: string,
+    to?: string,
+    limit: number = 5,
+    page: number = 1,
+  ) {
+    let fromDate: Date = new Date();
+    let toDate: Date = new Date();
+
+    if (filter) {
+      if (filter == Filteroptions.week) {
+        fromDate = new Date();
+        fromDate = new Date(fromDate.setDate(fromDate.getDate() - 7));
+      } else if (filter == Filteroptions.month) {
+        fromDate = new Date();
+        fromDate = new Date(fromDate.setMonth(fromDate.getMonth() - 1));
+      } else if (filter == Filteroptions.three_months) {
+        fromDate = new Date();
+        fromDate = new Date(fromDate.setMonth(fromDate.getMonth() - 3));
+      }
+    } else if (from && to) {
+      fromDate = new Date(from);
+      toDate = new Date(to);
+      if (fromDate > toDate) {
+        throw new BadRequestException('Parametros invalidos');
+      }
+    } else {
+      fromDate = new Date();
+      fromDate = new Date(fromDate.setDate(fromDate.getDate() - 7));
+    }
+
+    const offset = (page - 1) * limit;
+
+    return await this.expenseRepository.find({
+      where: { createdAt: Between(fromDate, toDate) },
+      order: { createdAt: 'DESC' },
+      skip: offset,
+      take: limit,
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} expense`;
+  async findById(id: number) {
+    return await this.expenseRepository.findOne({
+      where: { id },
+      relations: {
+        category: true,
+      },
+    });
   }
 
-  update(id: number, updateExpenseDto: UpdateExpenseDto) {
-    return `This action updates a #${id} expense`;
+  async update(id: number, updateExpenseDto: UpdateExpenseDto) {
+    await this.expenseRepository.update(id, { ...updateExpenseDto });
+    return await this.expenseRepository.findOne({
+      where: { id },
+      relations: {
+        category: true,
+      },
+    });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} expense`;
+  async remove(id: number) {
+    await this.expenseRepository.delete(id);
+    return {
+      id,
+    };
   }
 }

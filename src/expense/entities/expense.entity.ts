@@ -20,8 +20,14 @@ export class Expense {
   @Column()
   amount: number;
 
+  @Column()
+  categoryId: number;
+
   @ManyToOne(() => Category, (category) => category.expenses)
   category: Category;
+
+  @Column()
+  userId: number;
 
   @ManyToOne(() => User, (user) => user.expenses)
   user: User;
