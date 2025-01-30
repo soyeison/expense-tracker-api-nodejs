@@ -7,9 +7,17 @@ import { ExpenseModule } from './expense/expense.module';
 import { Expense } from './expense/entities/expense.entity';
 import { Category } from './category/entities/category.entity';
 import { CategoryModule } from './category/category.module';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 
 @Module({
   imports: [
+    ThrottlerModule.forRoot([
+      {
+        ttl: 10000,
+        limit: 100,
+      },
+    ]),
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: 'localhost',
@@ -26,6 +34,11 @@ import { CategoryModule } from './category/category.module';
     CategoryModule,
   ],
   controllers: [],
-  providers: [],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
 export class AppModule {}
