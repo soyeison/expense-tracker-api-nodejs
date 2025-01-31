@@ -22,23 +22,29 @@ export class UserService {
     });
   }
 
-  async findAll(): Promise<User[]> {
-    return await this.userRepository.find();
+  async findAll(limit: number = 10, page: number = 1): Promise<User[]> {
+    const offset = (page - 1) * limit;
+    return await this.userRepository.find({
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        username: true,
+        isActive: true,
+        password: false,
+        createdAt: true,
+        updatedAt: true,
+      },
+      skip: offset,
+      take: limit,
+    });
   }
 
-  async findById(id: number) {
+  async findById(id: number): Promise<User | null> {
     return await this.userRepository.findOne({ where: { id } });
   }
 
-  async findByUsername(username: string) {
+  async findByUsername(username: string): Promise<User | null> {
     return await this.userRepository.findOne({ where: { username } });
-  }
-
-  /* update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
-  } */
-
-  remove(id: number) {
-    return `This action removes a #${id} user`;
   }
 }
